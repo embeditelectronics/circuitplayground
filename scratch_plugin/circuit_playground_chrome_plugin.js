@@ -15,6 +15,29 @@
     function fitTo255(num) {
         return Math.max(Math.min(num,255.0),0.0);
     }
+	
+	//convert scratch hex color to rgb for neopixels
+	function hexToRgb(hex) {
+		// Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+		var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+		hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+			return r + r + g + g + b + b;
+		});
+
+		var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+		return result ? {
+			r: parseInt(result[1], 16),
+			g: parseInt(result[2], 16),
+			b: parseInt(result[3], 16)
+		} : null;
+	}
+	
+	function hexToR(h) {return parseInt((cutHex(h)).substring(0,2),16)}
+	function hexToG(h) {return parseInt((cutHex(h)).substring(2,4),16)}
+	function hexToB(h) {return parseInt((cutHex(h)).substring(4,6),16)}
+	function cutHex(h) {return (h.charAt(0)=="#") ? h.substring(1,7):h}
+
+	
     //gets the connection status fo the circuit playground
     var getCircuitPlaygroundStatus = function () {
         console.log("status");
@@ -73,15 +96,83 @@
         hPort.postMessage(report);
     };
 
-    ext.setTriLed = function (portnum, rednum, greennum, bluenum) {
-        var realPort = portnum - 1; //convert from zero-indexed
-        //var portString = realPort.toString(); //convert to string
+    ext.setTriLed = function (lednum, rednum, greennum, bluenum) {
+        var realPort = 1 - 1; //convert from zero-indexed
+        var portString = realPort.toString(); //convert to string
         var realRed = rednum;
         var realGreen = greennum;
         var realBlue = bluenum;
         var report = {
             message: "O".charCodeAt(0),
-            port: realPort,
+            lednum: lednum,
+            red: realRed,
+            green: realGreen,
+            blue: realBlue
+        };
+        hPort.postMessage(report);
+    };
+	
+	ext.setRingLed = function (lednum, color) {
+        var realPort = 1 - 1; //convert from zero-indexed
+        var portString = realPort.toString(); //convert to string
+        var realRed = 0;
+        var realGreen = 0;
+        var realBlue = 0;
+		//'Red','Green','Blue','Orange','Yellow','Violet','White', 'Off'
+		switch(color) {
+			case "Red":
+				realRed = 255;
+				break;
+			case "Green":
+				realGreen = 255;
+				break;
+			case "Blue":
+				realBlue = 255;
+				break;
+			case "Orange":
+				realRed = 255;
+				realGreen = 153;
+				break;
+			case "Yellow":
+				realRed = 255;
+				realGreen = 255;
+				break;
+			case "Violet":
+				realRed = 153;
+				realBlue = 153;
+				break;
+			case "Teal":
+				realGreen = 255;
+				realBlue = 255;
+				break;
+			case "White":
+				realRed = 255;
+				realGreen = 255;
+				realBlue = 255;
+				break;
+			default:
+				realRed = 0;
+		}
+		
+        var report = {
+            message: "O".charCodeAt(0),
+            lednum: lednum,
+            red: realRed,
+            green: realGreen,
+            blue: realBlue
+        };
+        hPort.postMessage(report);
+    };
+	
+	ext.setTriLedHex = function (lednum, hexColor) {
+        var realPort = 1 - 1; //convert from zero-indexed
+        var portString = realPort.toString(); //convert to string
+        var realRed = hexToR(hexColor);
+        var realGreen = hexToR(hexColor);
+        var realBlue = hexToR(hexColor);
+        var report = {
+            message: "O".charCodeAt(0),
+            lednum: lednum,
             red: realRed,
             green: realGreen,
             blue: realBlue
@@ -93,6 +184,8 @@
         //var realPort = portnum - 1;
         //var portString = realPort.toString();
         //var realIntensity = fitTo255(Math.floor(intensitynum * 2.55));
+		var realPort = 1 - 1; //convert from zero-indexed
+        var portString = realPort.toString(); //convert to string
 		var led_set = 0;
 		if(b_switch == 'On') {
 			led_set = 1;
@@ -102,7 +195,8 @@
 		}
         var report = {
             message: "L".charCodeAt(0),
-            led_s: led_set
+			port: portString.charCodeAt(0),
+            intensity: led_set
         };
         hPort.postMessage(report);
     };
@@ -191,7 +285,20 @@
 
     ext.getRaw = function (port) {
         //converts to 0 to 100 scale
-        return Math.floor(sensorvalue[port - 1] / 2.55);
+        return sensorvalue[port - 1];//Math.floor(sensorvalue[port - 1] / 2.55);
+    };
+	
+	ext.getCap = function (port) {
+        //converts to 0 to 100 scale
+        var cap1 = sensorvalue[port - 1];//Math.floor(sensorvalue[port - 1] / 2.55);
+		if(cap1 > 10)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
     };
 
     ext.hSpeak = function (phrase) {
@@ -224,18 +331,24 @@
 
     var descriptor = {
         blocks: [
-            [' ', "Set LED %m.binary_s", "setLed", 'On'],
-            [' ', "Set Servo %m.port , angle %n", "setServo", 1, 90],
+			['b', "Touch sensor %m.debug_s touched?", "getCap", 1],
+			[' ', "Set Neopixel Ring #%m.ten to %m.colors", "setRingLed", '1', 'Red'],
+			[' ', "Set Neopixel Matrix Row #%m.ten to %m.colors", "setRingLed", '1', 'Red'],
+			[' ', "Set Neopixel Matrix Column #%m.ten to %m.colors", "setRingLed", '1', 'Green'],
+            [' ', "Turn LED %m.binary_s", "setLed", 'On'],
+            [' ', "Set Servo %m.two angle to %n", "setServo", 1, 90],
             ['r', "Temperature on port %m.port", "getTemp", 1],
             ['r', "Sound on port %m.port", "getSound", 1],
-            ['r', "Light sensor on port %m.port", "getRaw", 1],
-			[' ', "Set Neopixel Ring %m.ten , R: %n G: %n B: %n", "setTriLed", 1, 0, 100, 0],
+            ['r', "Debug value on port %m.debug_s", "getRaw", 1],
+			[' ', "Set Neopixel Ring #%m.ten to %c", "setTriLedHex", 1, "#FF00FF"],
             ['r', "Voltage on port %m.port", "getVolt", 1]
         ],
         menus: {
             port: ['1', '2', '3', '4'],
+			debug_s: ['0','1', '2', '3', '4','5'],
             two: ['1', '2'],
 			ten: [1,2,3,4,5,6,7,8,9,10],
+			colors: ['Red','Green','Blue','Orange','Yellow','Violet', 'Teal','White', 'Off'],
 			binary_s: ['On','Off']
         },
         url: 'http://www.embeditelectronics.com/blog/learn/'
