@@ -329,8 +329,8 @@
         var realRed = 0;
         var realGreen = 0;
         var realBlue = 0;
-		var ledx = lednumy - 1;
-		var ledy =  lednumx - 1;
+		lednumx = lednumx - 1;
+		lednumy = lednumy - 1;
 		//'Red','Green','Blue','Orange','Yellow','Violet','White', 'Off'
 		switch(color) {
 			case "Red":
@@ -369,8 +369,8 @@
 		
         var report = {
             message: "S".charCodeAt(0),
-            lednumx: ledx,
-			lednumy: ledy,
+            lednumx: lednumx,
+			lednumy: lednumy,
             red: realRed,
             green: realGreen,
             blue: realBlue
@@ -565,7 +565,7 @@
 			[' ', "Set Neopixel Ring %m.ten to %m.colors", "setRingLed", '1', 'Red'],
 			[' ', "Set Neopixel Matrix Row %m.row_s to %m.colors", "setRowLed", 1, 'Red'],
 			[' ', "Set Neopixel Matrix Column %m.col_s to %m.colors", "setColLed", 1, 'Green'],
-			[' ', "Set Neopixel Matrix Pixel %m.col_s %m.row_s to %m.colors", "setPixLed", 1, 1, 'Blue'],
+			[' ', "Set Neopixel Matrix Pixel %m.row_s %m.col_s to %m.colors", "setPixLed", 1, 1, 'Blue'],
 			[' ', "Set Full Neopixel Matrix to %m.colors", "setFullLed", 'Off'],
 			[' ', "Play Tone %m.col_s", "setTone", 1],
             [' ', "Turn LED %m.binary_s", "setLed", 'On'],
