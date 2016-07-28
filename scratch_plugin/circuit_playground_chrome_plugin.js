@@ -329,8 +329,8 @@
         var realRed = 0;
         var realGreen = 0;
         var realBlue = 0;
-		lednumx = lednumy - 1;
-		lednumy = lednumx - 1;
+		var ledx = lednumy - 1;
+		var ledy =  lednumx - 1;
 		//'Red','Green','Blue','Orange','Yellow','Violet','White', 'Off'
 		switch(color) {
 			case "Red":
@@ -369,8 +369,8 @@
 		
         var report = {
             message: "S".charCodeAt(0),
-            lednumx: lednumx,
-			lednumy: lednumy,
+            lednumx: ledx,
+			lednumy: ledy,
             red: realRed,
             green: realGreen,
             blue: realBlue
