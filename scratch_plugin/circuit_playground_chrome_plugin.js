@@ -164,6 +164,220 @@
         hPort.postMessage(report);
     };
 	
+	ext.setRowLed = function (lednum, color) {
+        var realPort = 1 - 1; //convert from zero-indexed
+        var portString = realPort.toString(); //convert to string
+		lednum = lednum - 1;
+        var realRed = 0;
+        var realGreen = 0;
+        var realBlue = 0;
+		//'Red','Green','Blue','Orange','Yellow','Violet','White', 'Off'
+		switch(color) {
+			case "Red":
+				realRed = 255;
+				break;
+			case "Green":
+				realGreen = 255;
+				break;
+			case "Blue":
+				realBlue = 255;
+				break;
+			case "Orange":
+				realRed = 255;
+				realGreen = 153;
+				break;
+			case "Yellow":
+				realRed = 255;
+				realGreen = 255;
+				break;
+			case "Violet":
+				realRed = 153;
+				realBlue = 153;
+				break;
+			case "Teal":
+				realGreen = 255;
+				realBlue = 255;
+				break;
+			case "White":
+				realRed = 255;
+				realGreen = 255;
+				realBlue = 255;
+				break;
+			default:
+				realRed = 0;
+		}
+		
+        var report = {
+            message: "M".charCodeAt(0),
+            lednum: lednum,
+            red: realRed,
+            green: realGreen,
+            blue: realBlue
+        };
+        hPort.postMessage(report);
+    };
+	
+	ext.setColLed = function (lednum, color) {
+        var realPort = 1 - 1; //convert from zero-indexed
+        var portString = realPort.toString(); //convert to string
+		lednum = lednum - 1;
+        var realRed = 0;
+        var realGreen = 0;
+        var realBlue = 0;
+		//'Red','Green','Blue','Orange','Yellow','Violet','White', 'Off'
+		switch(color) {
+			case "Red":
+				realRed = 255;
+				break;
+			case "Green":
+				realGreen = 255;
+				break;
+			case "Blue":
+				realBlue = 255;
+				break;
+			case "Orange":
+				realRed = 255;
+				realGreen = 153;
+				break;
+			case "Yellow":
+				realRed = 255;
+				realGreen = 255;
+				break;
+			case "Violet":
+				realRed = 153;
+				realBlue = 153;
+				break;
+			case "Teal":
+				realGreen = 255;
+				realBlue = 255;
+				break;
+			case "White":
+				realRed = 255;
+				realGreen = 255;
+				realBlue = 255;
+				break;
+			default:
+				realRed = 0;
+		}
+		
+        var report = {
+            message: "V".charCodeAt(0),
+            lednum: lednum,
+            red: realRed,
+            green: realGreen,
+            blue: realBlue
+        };
+        hPort.postMessage(report);
+    };
+	
+	ext.setFullLed = function (color) {
+        var realPort = 1 - 1; //convert from zero-indexed
+        var portString = realPort.toString(); //convert to string
+		var lednum = 1;
+        var realRed = 0;
+        var realGreen = 0;
+        var realBlue = 0;
+		//'Red','Green','Blue','Orange','Yellow','Violet','White', 'Off'
+		switch(color) {
+			case "Red":
+				realRed = 255;
+				break;
+			case "Green":
+				realGreen = 255;
+				break;
+			case "Blue":
+				realBlue = 255;
+				break;
+			case "Orange":
+				realRed = 255;
+				realGreen = 153;
+				break;
+			case "Yellow":
+				realRed = 255;
+				realGreen = 255;
+				break;
+			case "Violet":
+				realRed = 153;
+				realBlue = 153;
+				break;
+			case "Teal":
+				realGreen = 255;
+				realBlue = 255;
+				break;
+			case "White":
+				realRed = 255;
+				realGreen = 255;
+				realBlue = 255;
+				break;
+			default:
+				realRed = 0;
+		}
+		
+        var report = {
+            message: "N".charCodeAt(0),
+            lednum: lednum,
+            red: realRed,
+            green: realGreen,
+            blue: realBlue
+        };
+        hPort.postMessage(report);
+    };
+	
+	ext.setPixLed = function (lednumx, lednumy, color) {
+        var realPort = 1 - 1; //convert from zero-indexed
+        var portString = realPort.toString(); //convert to string
+        var realRed = 0;
+        var realGreen = 0;
+        var realBlue = 0;
+		lednumx = lednumx - 1;
+		lednumy = lednumy - 1;
+		//'Red','Green','Blue','Orange','Yellow','Violet','White', 'Off'
+		switch(color) {
+			case "Red":
+				realRed = 255;
+				break;
+			case "Green":
+				realGreen = 255;
+				break;
+			case "Blue":
+				realBlue = 255;
+				break;
+			case "Orange":
+				realRed = 255;
+				realGreen = 153;
+				break;
+			case "Yellow":
+				realRed = 255;
+				realGreen = 255;
+				break;
+			case "Violet":
+				realRed = 153;
+				realBlue = 153;
+				break;
+			case "Teal":
+				realGreen = 255;
+				realBlue = 255;
+				break;
+			case "White":
+				realRed = 255;
+				realGreen = 255;
+				realBlue = 255;
+				break;
+			default:
+				realRed = 0;
+		}
+		
+        var report = {
+            message: "S".charCodeAt(0),
+            lednumx: lednumx,
+			lednumy: lednumy,
+            red: realRed,
+            green: realGreen,
+            blue: realBlue
+        };
+        hPort.postMessage(report);
+    };
+	
 	ext.setTriLedHex = function (lednum, hexColor) {
         var realPort = 1 - 1; //convert from zero-indexed
         var portString = realPort.toString(); //convert to string
@@ -197,6 +411,22 @@
             message: "L".charCodeAt(0),
 			port: portString.charCodeAt(0),
             intensity: led_set
+        };
+        hPort.postMessage(report);
+    };
+	
+	ext.setTone = function (tone) {
+        //var realPort = portnum - 1;
+        //var portString = realPort.toString();
+        //var realIntensity = fitTo255(Math.floor(intensitynum * 2.55));
+		var realPort = 1 - 1; //convert from zero-indexed
+        var portString = realPort.toString(); //convert to string
+		var led_set = 0;
+		
+        var report = {
+            message: "P".charCodeAt(0),
+			port: portString.charCodeAt(0),
+            intensity: tone
         };
         hPort.postMessage(report);
     };
@@ -290,8 +520,8 @@
 	
 	ext.getCap = function (port) {
         //converts to 0 to 100 scale
-        var cap1 = sensorvalue[port - 1];//Math.floor(sensorvalue[port - 1] / 2.55);
-		if(cap1 > 10)
+        var cap1 = sensorvalue[port];//Math.floor(sensorvalue[port - 1] / 2.55);
+		if(cap1 > 5)
 		{
 			return 1;
 		}
@@ -331,10 +561,13 @@
 
     var descriptor = {
         blocks: [
-			['b', "Touch sensor %m.debug_s touched?", "getCap", 1],
-			[' ', "Set Neopixel Ring #%m.ten to %m.colors", "setRingLed", '1', 'Red'],
-			[' ', "Set Neopixel Matrix Row #%m.ten to %m.colors", "setRingLed", '1', 'Red'],
-			[' ', "Set Neopixel Matrix Column #%m.ten to %m.colors", "setRingLed", '1', 'Green'],
+			['b', "Touch sensor %m.cap_s touched?", "getCap", 0],
+			[' ', "Set Neopixel Ring %m.ten to %m.colors", "setRingLed", '1', 'Red'],
+			[' ', "Set Neopixel Matrix Row %m.row_s to %m.colors", "setRowLed", 1, 'Red'],
+			[' ', "Set Neopixel Matrix Column %m.col_s to %m.colors", "setColLed", 1, 'Green'],
+			[' ', "Set Neopixel Matrix Pixel %m.col_s %m.row_s to %m.colors", "setPixLed", 1, 1, 'Blue'],
+			[' ', "Set Full Neopixel Matrix to %m.colors", "setFullLed", 'Off'],
+			[' ', "Play Tone %m.col_s", "setTone", 1],
             [' ', "Turn LED %m.binary_s", "setLed", 'On'],
             [' ', "Set Servo %m.two angle to %n", "setServo", 1, 90],
             ['r', "Temperature on port %m.port", "getTemp", 1],
@@ -345,9 +578,12 @@
         ],
         menus: {
             port: ['1', '2', '3', '4'],
+			cap_s: [0,1,2,3],
 			debug_s: ['0','1', '2', '3', '4','5'],
             two: ['1', '2'],
 			ten: [1,2,3,4,5,6,7,8,9,10],
+			row_s: [1,2,3,4,5,6,7,8],
+			col_s: [1,2,3,4,5],
 			colors: ['Red','Green','Blue','Orange','Yellow','Violet', 'Teal','White', 'Off'],
 			binary_s: ['On','Off']
         },
