@@ -329,8 +329,8 @@
         var realRed = 0;
         var realGreen = 0;
         var realBlue = 0;
-		lednumx = lednumx - 1;
-		lednumy = lednumy - 1;
+		lednumx = lednumy - 1;
+		lednumy = lednumx - 1;
 		//'Red','Green','Blue','Orange','Yellow','Violet','White', 'Off'
 		switch(color) {
 			case "Red":
