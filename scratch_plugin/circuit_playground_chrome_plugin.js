@@ -1,5 +1,5 @@
 (function (ext) {
-    var embeditAppID = "dbhfnkcnljcbbpocflmbfcobkmagpgpf"; //#todo: change to embedit circuit playground app
+    var embeditAppID = "baompnnjgjmgglekohpklhpmgfkmjcnl"; //#todo: change to embedit circuit playground app
     //port connecting to chrome app
     var hPort;
     //connection status
