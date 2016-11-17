@@ -44,7 +44,7 @@
             if (response === undefined) { //Chrome app not found
                 console.log("Chrome app not found");
                 hStatus = 0;
-                setTimeout(getCircuitPlaygroundStatus, 1000);
+                setTimeout(getCircuitPlaygroundStatus, 10000);
             }
             else if (response.status === false) { //Chrome app says not connected
                 if (hStatus !== 1) {
@@ -53,7 +53,7 @@
                     hPort.onMessage.addListener(onMsgCircuitPlayground);
                 }
                 hStatus = 1;
-                setTimeout(getCircuitPlaygroundStatus, 1000);
+                setTimeout(getCircuitPlaygroundStatus, 10000);
             }
             else {// successfully connected
                 if (hStatus !==2) {
@@ -64,7 +64,7 @@
                     hPort.onMessage.addListener(onMsgCircuitPlayground);
                 }
                 hStatus = 2;
-                setTimeout(getCircuitPlaygroundStatus, 1000);
+                setTimeout(getCircuitPlaygroundStatus, 10000);
             }
         });
     };
@@ -426,6 +426,8 @@
 	
 	ext.getLight = function (port) {
         //returns light sensor value
+		
+		console.log("light: " + sensorvalue[4]);
         return sensorvalue[4];
     };
 	
@@ -456,7 +458,8 @@
 	
 	ext.getCap = function (port) {
         //converts to 0 to 100 scale
-        var cap1 = sensorvalue[port];//Math.floor(sensorvalue[port - 1] / 2.55);
+        var cap1 = sensorvalue[port];//Math.floor(sensorvalue[port - 1] / 2.55); 
+		console.log("cap " + port + ": " + cap1);
 		if(cap1 > 5)
 		{
 			return 1;
