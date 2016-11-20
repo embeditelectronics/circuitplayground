@@ -44,7 +44,7 @@
             if (response === undefined) { //Chrome app not found
                 console.log("Chrome app not found");
                 hStatus = 0;
-                setTimeout(getCircuitPlaygroundStatus, 10000);
+                setTimeout(getCircuitPlaygroundStatus, 2000);
             }
             else if (response.status === false) { //Chrome app says not connected
                 if (hStatus !== 1) {
@@ -53,7 +53,7 @@
                     hPort.onMessage.addListener(onMsgCircuitPlayground);
                 }
                 hStatus = 1;
-                setTimeout(getCircuitPlaygroundStatus, 10000);
+                setTimeout(getCircuitPlaygroundStatus, 2000);
             }
             else {// successfully connected
                 if (hStatus !==2) {
@@ -64,7 +64,7 @@
                     hPort.onMessage.addListener(onMsgCircuitPlayground);
                 }
                 hStatus = 2;
-                setTimeout(getCircuitPlaygroundStatus, 10000);
+                setTimeout(getCircuitPlaygroundStatus, 2000);
             }
         });
     };
@@ -460,7 +460,7 @@
         //converts to 0 to 100 scale
         var cap1 = sensorvalue[port];//Math.floor(sensorvalue[port - 1] / 2.55); 
 		console.log("cap " + port + ": " + cap1);
-		if(cap1 > 5)
+		if(cap1 > 80)
 		{
 			return 1;
 		}
@@ -495,7 +495,7 @@
         else if (currStatus === 1)
             return {status: 1, msg: 'Circuit Playground Not Connected'};
         else
-            return {status: 0, msg: 'Chrome App Not Connected'};
+            return {status: 1, msg: 'Chrome App Not Connected'};
     };
 
 	/*Capsense x4	0-3
