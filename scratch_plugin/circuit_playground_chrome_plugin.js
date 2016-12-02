@@ -39,7 +39,7 @@
 	
     //gets the connection status fo the circuit playground
     var getCircuitPlaygroundStatus = function () {
-        console.log("status");
+        //console.log("status"); 
         chrome.runtime.sendMessage(embeditAppID, {message: "STATUS"}, function (response) {
             if (response === undefined) { //Chrome app not found
                 console.log("Chrome app not found");
@@ -359,8 +359,8 @@
         //var realPort = portnum - 1;
         //var portString = realPort.toString();
         //var realIntensity = fitTo255(Math.floor(intensitynum * 2.55));
-		var realPort = 1 - 1; //convert from zero-indexed
-        var portString = realPort.toString(); //convert to string
+		//var realPort = 1 - 1; //convert from zero-indexed
+        //var portString = realPort.toString(); //convert to string
 		var led_set = 0;
 		if(b_switch == 'On') {
 			led_set = 1;
@@ -370,7 +370,6 @@
 		}
         var report = {
             message: "L".charCodeAt(0),
-			port: portString.charCodeAt(0),
             intensity: led_set
         };
         hPort.postMessage(report);
@@ -391,15 +390,47 @@
         };
         hPort.postMessage(report);
     };
+	
+	ext.setupServo = function (serv, servo_num) {
+        //var realPort = portnum - 1; //convert to zero-indexed number
+        //var portString = realPort.toString(); //convert to string
+        var servo_setup = 1;
+		//setup servos
+		if(serv == 'Start')
+		{
+			servo_setup = 1;
+		}
+		else
+		{
+			servo_setup = 0;
+		}
+		console.log("Setup Servo: " + servo_setup + "  " + servo_num);
+        var report = {
+            message: "s".charCodeAt(0),
+			servo_num: servo_num,
+            servo_setup: servo_setup
+        };
+        hPort.postMessage(report);
+    };
 
-    ext.setServo = function (portnum, ang) {
-        var realPort = portnum - 1; //convert to zero-indexed number
-        var portString = realPort.toString(); //convert to string
-        var realAngle = Math.max(Math.min((ang * 1.25), 225.0), 0.0);
+    ext.setServo = function (servo_num, ang) {
+        //var realPort = portnum - 1; //convert to zero-indexed number
+        //var portString = realPort.toString(); //convert to string
+		
+		//set servo bounds
+		if(ang < 5)
+		{
+			ang = 5;
+		}
+		if(ang > 175)
+		{
+			ang = 175;
+		}
+		console.log("Set Servo: " + servo_num + "  " + ang);
         var report = {
             message: "S".charCodeAt(0),
-            port: portString.charCodeAt(0),
-            angle: realAngle
+            servo_num: servo_num,
+            angle: ang
         };
         hPort.postMessage(report);
     };
@@ -516,7 +547,8 @@
 			[' ', "Set Full Neopixel Matrix to %m.colors", "setFullLed", 'Off'],
 			[' ', "Play Tone %m.col_s", "setTone", 1],
             [' ', "Turn LED %m.binary_s", "setLed", 'On'],
-            [' ', "Set Servo %m.two angle to %n", "setServo", 1, 90],
+			[' ', "%m.servo_s Servo %m.push_s", "setupServo", 'Start', 1],
+            [' ', "Set Servo %m.push_s angle to %n", "setServo", 1, 90],
 			['r', "Get Light Brightness", "getLight"],
             ['r', "Get Board Temperature", "getTemp"],
             ['r', "Get Microphone Loudness", "getSound"],
@@ -535,7 +567,8 @@
 			ten: [1,2,3,4,5,6,7,8,9,10],
 			row_s: [1,2,3,4,5,6,7,8],
 			col_s: [1,2,3,4,5],
-			colors: ['Red','Green','Blue','Orange','Yellow','Violet', 'Teal','White', 'Off'],
+			colors: ['Red','Green','Blue','Orange','Yellow','Violet', 'Teal','White', 'Off '],
+			servo_s: ['Start','Stop'],
 			binary_s: ['On','Off']
         },
         url: 'http://www.embeditelectronics.com/blog/learn/'
