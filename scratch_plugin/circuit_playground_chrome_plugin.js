@@ -433,7 +433,15 @@
 	
 	ext.getPush = function (port) {
         //returns push button status
-        return sensorvalue[port+6];
+		if(port == 1)
+		{
+			return sensorvalue[7];
+		}
+		if(port == 2)
+		{
+			return sensorvalue[8];
+		}
+        
     };
 	
 	ext.getSwitch = function (port) {
