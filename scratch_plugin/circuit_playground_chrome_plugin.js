@@ -445,9 +445,17 @@
 	Switch			9
 	Acc x3			10,11,12
 	*/
-    ext.getTemp = function (port) {
+    ext.getTemp = function (deg) {
         //returns temperature in Celsius degrees
-        return sensorvalue[6];
+		if(deg == '°F')
+		{
+			return sensorvalue[6];
+		}
+		else
+		{
+			return Math.round((sensorvalue[6]-32)*0.555);
+		}
+        
     };
 	
 	ext.getSound = function (port) {
@@ -482,9 +490,9 @@
 	
 	ext.getAcc = function (axis) {
         //returns accerolerometer values
-		if(axis == 'X')
+		if(axis == 'x')
 			return sensorvalue[10];
-		else if(axis == 'Y')
+		else if(axis == 'y')
 			return sensorvalue[11];
 		else
 			return sensorvalue[12];
@@ -508,6 +516,22 @@
 			return 0;
 		}
     };
+	
+	ext.mapVal = function(val, sCoor) {
+		var aMin = 0;
+		var aMax = 255;
+		var bMin = -240;
+		var bMax = 240;
+		
+		if(sCoor == 'y')
+		{
+			bmin = -180;
+			bMax = 180;
+		}
+		
+		var output = (((bMax - bMin) * (val - aMin)) / (aMax - aMin)) + bMin;
+		return Math.round(output);
+	};
 
     ext.hSpeak = function (phrase) {
         //uses Chrome text to speech API to speak the phrase
@@ -558,17 +582,18 @@
 			[' ', "%m.servo_s Servo %m.push_s", "setupServo", 'Start', 1],
             [' ', "Set Servo %m.push_s angle to %n", "setServo", 1, 90],
 			['r', "Get Light Brightness", "getLight"],
-            ['r', "Get Board Temperature", "getTemp"],
+            ['r', "Get Board Temperature in %m.temp_s", "getTemp", '°F'],
             ['r', "Get Microphone Loudness", "getSound"],
-			['r', "Get Accelerometer %m.acc_s axis", "getAcc", 'X'],
+			['r', "Get Accelerometer %m.acc_s axis", "getAcc", 'x'],
 			['b', "Pushbutton %m.push_s pushed?", "getPush", 1],
 			['b', "Switch on?", "getSwitch"],
+			['r', "Map value: %n to Scratch %m.coor_s coordinates", "mapVal", 127, 'y'],
             ['r', "Debug value on port %m.debug_s", "getRaw", 1]
         ],
         menus: {
             port: ['1', '2', '3', '4'],
 			cap_s: [0,1,2,3],
-			acc_s: ['X','Y','Z'],
+			acc_s: ['x','y','z'],
 			push_s: [1,2],
 			debug_s: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,18,19,20,21,22,29,30,31,32],
             two: ['1', '2'],
@@ -577,6 +602,8 @@
 			col_s: [1,2,3,4,5],
 			colors: ['Red','Green','Blue','Orange','Yellow','Violet', 'Teal','White', 'Off '],
 			servo_s: ['Start','Stop'],
+			coor_s: ['x','y'],
+			temp_s: ['°F', '°C'],
 			binary_s: ['On','Off']
         },
         url: 'http://www.embeditelectronics.com/blog/learn/'
