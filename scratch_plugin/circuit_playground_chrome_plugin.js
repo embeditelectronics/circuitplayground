@@ -517,18 +517,10 @@
 		}
     };
 	
-	ext.mapVal = function(val, sCoor) {
+	ext.mapVal = function(val, bMin, bMax) {
 		var aMin = 0;
 		var aMax = 255;
-		var bMin = -240;
-		var bMax = 240;
-		
-		if(sCoor == 'y')
-		{
-			bmin = -180;
-			bMax = 180;
-		}
-		
+
 		var output = (((bMax - bMin) * (val - aMin)) / (aMax - aMin)) + bMin;
 		return Math.round(output);
 	};
@@ -587,7 +579,7 @@
 			['r', "Get Accelerometer %m.acc_s axis", "getAcc", 'x'],
 			['b', "Pushbutton %m.push_s pushed?", "getPush", 1],
 			['b', "Switch on?", "getSwitch"],
-			['r', "Map value: %n to Scratch %m.coor_s coordinates", "mapVal", 127, 'y'],
+			['r', "Map value: %n to range %n - %n", "mapVal", 127, -180,180],
             ['r', "Debug value on port %m.debug_s", "getRaw", 1]
         ],
         menus: {
