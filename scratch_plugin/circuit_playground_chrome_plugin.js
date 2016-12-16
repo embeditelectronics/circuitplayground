@@ -1,5 +1,5 @@
 (function (ext) {
-    var embeditAppID = "dbhfnkcnljcbbpocflmbfcobkmagpgpf"; //#todo: change to embedit circuit playground app
+    var embeditAppID = "dbhfnkcnljcbbpocflmbfcobkmagpgpf";
     //port connecting to chrome app
     var hPort;
     //connection status
@@ -569,7 +569,6 @@
 			[' ', "Set Neopixel Matrix Column %m.col_s to %m.colors", "setColLed", 1, 'Green'],
 			[' ', "Set Neopixel Matrix Pixel %m.row_s %m.col_s to %m.colors", "setPixLed", 1, 1, 'Blue'],
 			[' ', "Set Full Neopixel Matrix to %m.colors", "setFullLed", 'Off'],
-			[' ', "Play Tone %m.col_s", "setTone", 1],
             [' ', "Turn LED %m.binary_s", "setLed", 'On'],
 			[' ', "%m.servo_s Servo %m.push_s", "setupServo", 'Start', 1],
             [' ', "Set Servo %m.push_s angle to %n", "setServo", 1, 90],
