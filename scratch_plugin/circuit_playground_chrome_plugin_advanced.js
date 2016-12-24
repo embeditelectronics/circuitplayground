@@ -144,6 +144,18 @@
         hPort.postMessage(report);
     };
 	
+	ext.setMatrixConfig = function (tileX, tileY) {
+		
+		console.log("neo matrix setup:" + tileX + " by:" + tileY);
+		
+        var report = {
+            message: "D".charCodeAt(0),
+            tile1: tileX,
+            tile2: tileY
+        };
+        hPort.postMessage(report);
+    };
+	
 	ext.setFullLed = function (redC, greenC, blueC) {
         var realPort = 1 - 1; //convert from zero-indexed
         var portString = realPort.toString(); //convert to string
@@ -417,6 +429,7 @@
 			['b', "Touch sensor %n touched?", "getCap", 0],
 			[' ', "Set Neopixel Ring %n to R:%n G:%n B:%n", "setRingLed", 1, 255, 0, 0],
 			[' ', "Set Neopixel Matrix Row %n to R:%n G:%n B:%n", "setRowLed", 1, 255, 0, 0],
+			[' ', "Setup Neopixel Matrix Tiling to %n by %n", "setMatrixConfig", 1, 1],
 			[' ', "Set Neopixel Matrix Column %n to R:%n G:%n B:%n", "setColLed", 1, 0, 255, 0],
 			[' ', "Set Neopixel Matrix Pixel %n , %n to R:%n G:%n B:%n", "setPixLed", 1, 1, 0, 0, 255],
 			[' ', "Set Full Neopixel Matrix to R:%n G:%n B:%n", "setFullLed", 0, 0, 0],
@@ -451,5 +464,5 @@
         url: 'http://www.embeditelectronics.com/blog/learn/'
     };
     getCircuitPlaygroundStatus();
-    ScratchExtensions.register('Circuit Playground', descriptor, ext);
+    ScratchExtensions.register('Circuit Playground Advanced', descriptor, ext);
 })({});
