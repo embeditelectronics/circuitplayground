@@ -9,6 +9,8 @@ Learn more here: https://embeditelectronics.com#scratch
 
 This Scratch extension is based on work done by BirdBrain Technologies.
 
+The Arduino firmware uses modified Adafruit libraries, as well as LUFA USB HID libraries. MIT license.
+
 
 
 
