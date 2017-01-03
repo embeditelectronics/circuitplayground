@@ -45,7 +45,7 @@
             if (response === undefined) { //Chrome app not found
                 console.log("Chrome app not found");
                 hStatus = 0;
-                setTimeout(getCircuitPlaygroundStatus, 2000);
+                setTimeout(getCircuitPlaygroundStatus, 100);
             }
             else if (response.status === false) { //Chrome app says not connected
                 if (hStatus !== 1) {
@@ -54,7 +54,7 @@
                     hPort.onMessage.addListener(onMsgCircuitPlayground);
                 }
                 hStatus = 1;
-                setTimeout(getCircuitPlaygroundStatus, 2000);
+                setTimeout(getCircuitPlaygroundStatus, 100);
             }
             else {// successfully connected
                 if (hStatus !==2) {
@@ -65,7 +65,7 @@
                     hPort.onMessage.addListener(onMsgCircuitPlayground);
                 }
                 hStatus = 2;
-                setTimeout(getCircuitPlaygroundStatus, 2000);
+                setTimeout(getCircuitPlaygroundStatus, 100);
             }
         });
     };
@@ -223,12 +223,7 @@
     };
 
     ext.setLed = function () {
-        //var realPort = portnum - 1;
-        //var portString = realPort.toString();
-        //var realIntensity = fitTo255(Math.floor(intensitynum * 2.55));
-		//var realPort = 1 - 1; //convert from zero-indexed
-        //var portString = realPort.toString(); //convert to string
-		
+      
 		ledStatus ^= true;
 		
         var report = {
@@ -368,6 +363,12 @@
 	
 	ext.getCap = function (port) {
         //converts to 0 to 100 scale
+		var report = {
+            message: "c".charCodeAt(0),
+			red: 1 
+        };
+        hPort.postMessage(report);
+		 
         var cap1 = sensorvalue[port];//Math.floor(sensorvalue[port - 1] / 2.55); 
 		console.log("cap " + port + ": " + cap1);
 		if(cap1 > 80)
@@ -429,10 +430,10 @@
 			['b', "Touch sensor %n touched?", "getCap", 0],
 			[' ', "Set Neopixel Ring %n to R:%n G:%n B:%n", "setRingLed", 1, 255, 0, 0],
 			[' ', "Set Neopixel Matrix Row %n to R:%n G:%n B:%n", "setRowLed", 1, 255, 0, 0],
-			[' ', "Setup Neopixel Matrix Tiling to %n by %n", "setMatrixConfig", 1, 1],
 			[' ', "Set Neopixel Matrix Column %n to R:%n G:%n B:%n", "setColLed", 1, 0, 255, 0],
 			[' ', "Set Neopixel Matrix Pixel %n , %n to R:%n G:%n B:%n", "setPixLed", 1, 1, 0, 0, 255],
 			[' ', "Set Full Neopixel Matrix to R:%n G:%n B:%n", "setFullLed", 0, 0, 0],
+			[' ', "Setup Neopixel Matrix Tiling to %n by %n", "setMatrixConfig", 1, 1],
             [' ', "Toggle LED", "setLed"],
 			[' ', "%m.servo_s Servo %m.push_s", "setupServo", 'Start', 1],
             [' ', "Set Servo %m.push_s angle to %n", "setServo", 1, 90],
@@ -443,7 +444,7 @@
 			['b', "Pushbutton %m.push_s pushed?", "getPush", 1],
 			['b', "Switch on?", "getSwitch"],
 			['r', "Map value: %n to range %n - %n", "mapVal", 127, -180,180],
-            ['r', "Debug value on port %m.debug_s", "getRaw", 1]
+            ['r', "Debug value on port %n", "getRaw", 1]
         ],
         menus: {
             port: ['1', '2', '3', '4'],
@@ -461,8 +462,8 @@
 			temp_s: ['°F', '°C'],
 			binary_s: ['On','Off']
         },
-        url: 'http://www.embeditelectronics.com/blog/learn/'
+        url: 'https://www.embeditelectronics.com/blog/project/circuit-playground-scratch-blocks/#Advanced_Blocks'
     };
     getCircuitPlaygroundStatus();
-    ScratchExtensions.register('Circuit Playground Advanced', descriptor, ext);
+    ScratchExtensions.register('Circuit Playground Adv', descriptor, ext);
 })({});
