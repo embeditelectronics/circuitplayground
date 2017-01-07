@@ -26,11 +26,13 @@
 
 #define PIN 6
 // we light one pixel at a time, this is our counter
-uint8_t pixeln = 0;
+//uint8_t pixeln = 0;
 uint8_t usb_data = 1;
+uint8_t tileX_c=1;
+uint8_t tileY_c=1;
 
 //setup the neopixel shield. 8x5 array on pin 6
-Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(5, 8, PIN,
+Adafruit_NeoMatrix* matrix = new Adafruit_NeoMatrix(5, 8, PIN,
   NEO_MATRIX_TOP     + NEO_MATRIX_RIGHT +
   NEO_MATRIX_COLUMNS + NEO_MATRIX_PROGRESSIVE,
   NEO_GRB            + NEO_KHZ800);
@@ -51,10 +53,10 @@ void setup()
 	GlobalInterruptEnable(); // enable global interrupts
 	
 	CircuitPlayground.begin();
-	matrix.begin();
-	matrix.setTextWrap(false);
-	matrix.setBrightness(30);
-	matrix.fillScreen(0);
+	matrix->begin();
+	matrix->setTextWrap(false);
+	matrix->setBrightness(30);
+	matrix->fillScreen(0);
 	CircuitPlayground.setPixelColor(0,0,0,0);
 	//myservo1.attach(9);  // attaches the servo on pin 9 to the servo object
 	//myservo2.attach(10);  // attaches the servo on pin 10 to the servo object
@@ -102,74 +104,97 @@ void setServo(uint8_t servo_num, uint8_t servo_ang)
 	}
 }
 
+/*void matrixPrint()
+{
+	int x = matrix->width();
+	matrix->fillScreen(0);
+	matrix->setCursor(0, 0);
+	matrix->print(F("Howdy"));
+	matrix->show();
+}*/
+
+void matrixSetup(uint8_t tileX, uint8_t tileY)
+{
+	if(tileX != tileX_c || tileY != tileY_c)
+	{
+		delete matrix;
+		Adafruit_NeoMatrix* matrix = new Adafruit_NeoMatrix(5, 8, tileY, tileX, PIN,
+		NEO_TILE_TOP   + NEO_TILE_LEFT   + NEO_TILE_COLUMNS   + NEO_TILE_PROGRESSIVE +
+		NEO_MATRIX_TOP     + NEO_MATRIX_RIGHT +
+		NEO_MATRIX_COLUMNS + NEO_MATRIX_PROGRESSIVE,
+		NEO_GRB            + NEO_KHZ800);
+		
+		matrix->begin();
+		matrix->setTextWrap(false);
+		matrix->setBrightness(30);
+		matrix->fillScreen(0);
+	}
+	tileX_c = tileX;
+	tileY_c = tileY;
+}
+
 //draw rows or columns on the neopixel matrix
 void drawNeoStrip(uint8_t strip, uint8_t pixel, uint16_t color)
 {
 	//draw row
 	if(strip == 0)
 	{
-		for(int x = 0; x < 8; x++)
-		{
-			matrix.drawPixel(pixel,x,color);
-		}
+		matrix->drawFastVLine(pixel,0,matrix->height(),color);
+		//for(int x = 0; x < 8; x++)
+		//{
+		//	matrix->drawPixel(pixel,x,color);
+		//}
 	}
 	else //draw column
 	{
-		for(int x = 0; x < 5; x++)
-		{
-			matrix.drawPixel(x,pixel,color);
-		}
+		matrix->drawFastHLine(0,pixel,matrix->width(),color);
+		//for(int x = 0; x < 5; x++)
+		//{
+		//	matrix->drawPixel(x,pixel,color);
+		//}
 	}
-	matrix.show();
+	matrix->show();
 }
 
 
 void loop()
 {
-	/*// test Red #13 LED
-	CircuitPlayground.redLED(HIGH);
-	delay(100);
-	CircuitPlayground.redLED(LOW);
-	delay(100);
-	
-	// TEST 10 NEOPIXELS
-	CircuitPlayground.setPixelColor(pixeln++, CircuitPlayground.colorWheel(25 * pixeln));
-	if (pixeln == 11) {
-		pixeln = 0;
-		CircuitPlayground.clearPixels();
-	}*/
 	// Necessary LUFA library calls that need be run periodically to check USB for data
 	HID_Device_USBTask(&Generic_HID_Interface);
 	USB_USBTask();
 	usb_data = 1;
-		// HID Reports are 8 bytes long. The first byte specifies the function of that report (set motors, get light sensor values, etc).
+	
+		// HID Reports are 8 bytes long. The first byte specifies the function of that report (set leds, get light sensor values, etc).
 			switch(echoReportData[0]) {
 				// If O, set an circuitplayground RGB LED using bytes 1-4 of the HID report
 				case 'O':
-					//CircuitPlayground.redLED(HIGH);
-					//set_orb(HIDReportEcho.ReportData[1], HIDReportEcho.ReportData[2], HIDReportEcho.ReportData[3], HIDReportEcho.ReportData[4]);
 					CircuitPlayground.setPixelColor(echoReportData[1],echoReportData[2],echoReportData[3],echoReportData[4]);
 					break;
 				// If 'P', draw a pixel on the neopixel matrix
 				case 'P':
-					matrix.drawPixel(echoReportData[2], echoReportData[1], matrix.Color(echoReportData[3],echoReportData[4],echoReportData[5]));
-					matrix.show();
-					//set_led(HIDReportEcho.ReportData[1], HIDReportEcho.ReportData[2]);
+					matrix->drawPixel(echoReportData[2], echoReportData[1], matrix->Color(echoReportData[3],echoReportData[4],echoReportData[5]));
+					matrix->show();
 					break;
 				// If 'R', draw a row on the neopixel matrix
 				case 'R':
-					drawNeoStrip(1, echoReportData[1], matrix.Color(echoReportData[2], echoReportData[3], echoReportData[4]));
-					//set_motor(HIDReportEcho.ReportData[1]-48, HIDReportEcho.ReportData[2]-48, HIDReportEcho.ReportData[3]);
+					drawNeoStrip(1, echoReportData[1], matrix->Color(echoReportData[2], echoReportData[3], echoReportData[4]));
 					break;
 				// If 'C', draw a column on the neopixel matrix
 				case 'C':
-					drawNeoStrip(0, echoReportData[1], matrix.Color(echoReportData[2], echoReportData[3], echoReportData[4]));
+					drawNeoStrip(0, echoReportData[1], matrix->Color(echoReportData[2], echoReportData[3], echoReportData[4]));
 					break;
 				// If 'F', fill the neopixel matrix
 				case 'F':
-					matrix.fillScreen(matrix.Color(echoReportData[2], echoReportData[3], echoReportData[4]));
-					matrix.show();
-					//matrix.show();
+					matrix->fillScreen(matrix->Color(echoReportData[2], echoReportData[3], echoReportData[4]));
+					matrix->show();
+					break;
+				//setup neopixel matrix tiling
+				case 'D':
+					matrixSetup(echoReportData[1],echoReportData[2]);
+					break;
+				//print string to neomatrix
+				case 'p':
+					//matrixPrint();
 					break;
 				// If 'B', sound the buzzer
 				case 'B':
@@ -191,7 +216,6 @@ void loop()
 				case 's':
 					setupServo(echoReportData[1],echoReportData[2]);
 					break;
-					
 				case 'G':
 					//request for sensor readings
 					if(echoReportData[1] == '3') {
@@ -217,13 +241,12 @@ void loop()
 						outReportData[11] = map(constrain(CircuitPlayground.motionY(),-9.8,9.8), -9.8,9.8, 0, 255);
 						outReportData[12] = map(constrain(CircuitPlayground.motionZ(),-20.0,20.0), -20.0, 20.0, 0, 255);
 						
-						outReportData[18] = 0x03;
-						//outReportData[19] = 0x01;
+						outReportData[18] = 0x04; //firmware version
+						break;
 					}
 					//request for board type
 					if(echoReportData[1] == '4') {
-						outReportData[0] = 0x03;
-						outReportData[1] = 0x00;
+						outReportData[18] = 0x04; //firmware version
 					}
 					
 					break;
