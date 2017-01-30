@@ -25,11 +25,13 @@
 
 
 #define PIN 6
-// we light one pixel at a time, this is our counter
-//uint8_t pixeln = 0;
+
 uint8_t usb_data = 1;
 uint8_t tileX_c=1;
 uint8_t tileY_c=1;
+
+unsigned long time;//time how long it takes to respond to polling requests
+//unsigned long time2;
 
 //setup the neopixel shield. 8x5 array on pin 6
 Adafruit_NeoMatrix* matrix = new Adafruit_NeoMatrix(5, 8, PIN,
@@ -37,14 +39,16 @@ Adafruit_NeoMatrix* matrix = new Adafruit_NeoMatrix(5, 8, PIN,
   NEO_MATRIX_COLUMNS + NEO_MATRIX_PROGRESSIVE,
   NEO_GRB            + NEO_KHZ800);
 
+//int x  = matrix->width();
+//int pass = 0;
 //extern "C" {struct HIDReportEcho;}
 //extern "C" {struct OutGoingReport;}
 
 //HIDReportEcho;
-//		extern struct OutGoingReport;
+//extern struct OutGoingReport;
 
-Servo myservo1;  // create servo object to control a servo
-Servo myservo2;  // create servo object to control a servo
+Servo myservo1;  // create servo object to control servo 1
+Servo myservo2;  // create servo object to control servo 2
 
 void setup()
 {
@@ -55,11 +59,12 @@ void setup()
 	CircuitPlayground.begin();
 	matrix->begin();
 	matrix->setTextWrap(false);
-	matrix->setBrightness(30);
+	matrix->setCursor(0,0);
+	matrix->setTextColor(matrix->Color(255,0,0));
+	//matrix->setTextSize(1);
+	matrix->setBrightness(30);//setting maximum neopixel brightness on the neomatrix. Not tested with higher brightness values.
 	matrix->fillScreen(0);
 	CircuitPlayground.setPixelColor(0,0,0,0);
-	//myservo1.attach(9);  // attaches the servo on pin 9 to the servo object
-	//myservo2.attach(10);  // attaches the servo on pin 10 to the servo object
 }
 
 //attach/detach servos on ports 9 and 10
@@ -93,7 +98,6 @@ void setupServo(uint8_t servo_num, uint8_t servo_setup)
 //set servo angle
 void setServo(uint8_t servo_num, uint8_t servo_ang)
 {	
-	//myservo1.write(90);
 	if(servo_num == 1)
 	{
 		myservo1.write(servo_ang);
@@ -104,15 +108,35 @@ void setServo(uint8_t servo_num, uint8_t servo_ang)
 	}
 }
 
-/*void matrixPrint()
+//print text to the neomatrix
+void matrixPrint(uint8_t message[])
 {
-	int x = matrix->width();
-	matrix->fillScreen(0);
-	matrix->setCursor(0, 0);
-	matrix->print(F("Howdy"));
-	matrix->show();
-}*/
+	matrix->fillScreen(0);//erase neomatrix contents
+	
+	String str = (char*)message;
+	matrix->print(str.substring(1)); //start from index 1 to skip command letter
 
+	matrix->show(); 
+}
+
+//Set cursor position on the neomatrix. Allows you to scroll through printed text
+void matrixSetCursor(uint8_t cursorX, uint8_t cursorY, uint8_t signX, uint8_t signY)
+{
+	int cX = cursorX;
+	int cY = cursorY;
+	if(signX)
+	{
+		cX *= -1;
+	}
+	if(signY)
+	{	
+		cY *= -1;
+	}
+	
+	matrix->setCursor(cX, cY);
+}
+
+//setup neomatrix tiling. Works with up to 4 matrices in any layout, 1x2, 2x1, 2x2, etc.
 void matrixSetup(uint8_t tileX, uint8_t tileY)
 {
 	if(tileX != tileX_c || tileY != tileY_c)
@@ -126,6 +150,9 @@ void matrixSetup(uint8_t tileX, uint8_t tileY)
 		
 		matrix->begin();
 		matrix->setTextWrap(false);
+		matrix->setTextSize(1);
+		matrix->setCursor(0,0);
+		matrix->setTextColor(matrix->Color(255,0,0));
 		matrix->setBrightness(30);
 		matrix->fillScreen(0);
 	}
@@ -140,33 +167,27 @@ void drawNeoStrip(uint8_t strip, uint8_t pixel, uint16_t color)
 	if(strip == 0)
 	{
 		matrix->drawFastVLine(pixel,0,matrix->height(),color);
-		//for(int x = 0; x < 8; x++)
-		//{
-		//	matrix->drawPixel(pixel,x,color);
-		//}
 	}
 	else //draw column
 	{
 		matrix->drawFastHLine(0,pixel,matrix->width(),color);
-		//for(int x = 0; x < 5; x++)
-		//{
-		//	matrix->drawPixel(x,pixel,color);
-		//}
 	}
 	matrix->show();
 }
 
-
+//main program loop
 void loop()
 {
+	//time = millis();//time before we run usb polling and sample sensors. uncomment to measure sampling time.
+	
 	// Necessary LUFA library calls that need be run periodically to check USB for data
 	HID_Device_USBTask(&Generic_HID_Interface);
 	USB_USBTask();
 	usb_data = 1;
 	
-		// HID Reports are 8 bytes long. The first byte specifies the function of that report (set leds, get light sensor values, etc).
+		// HID Reports are 8 bytes long. The first byte specifies the function of that report; set leds, get light sensor values, etc.
 			switch(echoReportData[0]) {
-				// If O, set an circuitplayground RGB LED using bytes 1-4 of the HID report
+				// If O, set a circuitplayground RGB LED using bytes 1-4 of the HID report
 				case 'O':
 					CircuitPlayground.setPixelColor(echoReportData[1],echoReportData[2],echoReportData[3],echoReportData[4]);
 					break;
@@ -194,7 +215,15 @@ void loop()
 					break;
 				//print string to neomatrix
 				case 'p':
-					//matrixPrint();
+					matrixPrint(echoReportData);
+					break;
+				//set matrix cursor	
+				case 'c':
+					matrixSetCursor(echoReportData[1],echoReportData[2], echoReportData[3], echoReportData[4]);
+					break;
+				//set matrix text color
+				case 'T':
+					matrix->setTextColor(matrix->Color(echoReportData[1],echoReportData[2], echoReportData[3]));
 					break;
 				// If 'B', sound the buzzer
 				case 'B':
@@ -226,7 +255,9 @@ void loop()
 						Pushbutton x2	7,8
 						Switch			9
 						Acc x3			10,11,12
+						Note: must respond to this polling request within ~20 milliseconds
 						*/
+						//time = millis();//time before we sample sensors. uncomment to measure sampling time.
 						outReportData[0] = CircuitPlayground.readCap(0);
 						outReportData[1] = CircuitPlayground.readCap(1);
 						outReportData[2] = CircuitPlayground.readCap(2);
@@ -240,13 +271,15 @@ void loop()
 						outReportData[10] = map(constrain(CircuitPlayground.motionX(),-9.8,9.8), -9.8,9.8, 0, 255);
 						outReportData[11] = map(constrain(CircuitPlayground.motionY(),-9.8,9.8), -9.8,9.8, 0, 255);
 						outReportData[12] = map(constrain(CircuitPlayground.motionZ(),-20.0,20.0), -20.0, 20.0, 0, 255);
+						//You can add outgoing data from additional sensors here, using outReportData[13-17]
 						
-						outReportData[18] = 0x04; //firmware version
+						//outReportData[13] = millis() - time;//time to sample sensors. uncomment to measure sampling time.
+						outReportData[18] = 0x05; //firmware version
 						break;
 					}
 					//request for board type
 					if(echoReportData[1] == '4') {
-						outReportData[18] = 0x04; //firmware version
+						outReportData[18] = 0x05; //firmware version
 					}
 					
 					break;
@@ -277,7 +310,7 @@ void loop()
 				echoReportData[0] = 0x00;
 				// Sets last byte of outgoing report to last byte of incoming report so an outgoing report can be matched to its incoming request
 				//outReportData[13] = echoReportData[13];
-				outReportData[19]= echoReportData[19];
+				outReportData[19] = echoReportData[19];
 				//exit_count = 0;
 				//max_count = 500000;
 			}

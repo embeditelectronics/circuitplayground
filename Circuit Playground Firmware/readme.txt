@@ -11,3 +11,5 @@ Changelog
 1.3 - Firmware now reports version number in outReportData[18].
 
 1.4 - Added ability to tile up to four neopixel matrices in any configuration.
+
+1.5 - Added ability to print scrolling text.
