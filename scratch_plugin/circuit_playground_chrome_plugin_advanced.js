@@ -8,6 +8,7 @@
 	var ledStatus = 0;
     //sensor info
     var sensorvalue = new Array(32);
+	
     //when a new message is recieved, save all the info
     var onMsgCircuitPlayground = function (msg) {
         sensorvalue = msg;
@@ -37,19 +38,18 @@
 	function hexToB(h) {return parseInt((cutHex(h)).substring(4,6),16)}
 	function cutHex(h) {return (h.charAt(0)=="#") ? h.substring(1,7):h}
 
-	
-    //gets the connection status fo the circuit playground
+    //gets the connection status for the circuit playground/scratch connection app
     var getCircuitPlaygroundStatus = function () {
         //console.log("status"); 
         chrome.runtime.sendMessage(embeditAppID, {message: "STATUS"}, function (response) {
             if (response === undefined) { //Chrome app not found
-                console.log("Chrome app not found");
+                //console.log("Chrome app not found");
                 hStatus = 0;
                 setTimeout(getCircuitPlaygroundStatus, 100);
             }
             else if (response.status === false) { //Chrome app says not connected
                 if (hStatus !== 1) {
-                    console.log("Not connected");
+                    //console.log("Not connected");
                     hPort = chrome.runtime.connect(embeditAppID);
                     hPort.onMessage.addListener(onMsgCircuitPlayground);
                 }
@@ -58,9 +58,9 @@
             }
             else {// successfully connected
                 if (hStatus !==2) {
-                    console.log("Connected");
+                    //console.log("Connected");
                     isDuo = response.duo;
-                    console.log("isDuo: " + isDuo);
+                    //console.log("isDuo: " + isDuo);
                     hPort = chrome.runtime.connect(embeditAppID);
                     hPort.onMessage.addListener(onMsgCircuitPlayground);
                 }
@@ -70,11 +70,8 @@
         });
     };
 	
-    //all the below functions take in a portnum, it is assumed that the port
-    //has the appropriate device connected to it.
-	
 	//set a neopixel on the circuit playground
-	ext.setRingLed = function (lednum, redC, greenC, blueC) {
+	ext.setRingLed = function (lednum, redC, greenC, blueC, callback) {
         lednum--;
 		if(lednum < 0) lednum = 0;//make sure our neopixel number is in bounds
 		if(lednum > 9) lednum = 9;
@@ -94,9 +91,14 @@
             blue: blueC
         };
         hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},10);
     };
 	
-	ext.setRowLed = function (lednum, redC, greenC, blueC) {
+	//set a row of neopixels on the neomatrix
+	ext.setRowLed = function (lednum, redC, greenC, blueC, callback) {
         var realPort = 1 - 1; //convert from zero-indexed
         var portString = realPort.toString(); //convert to string
         lednum--;
@@ -118,9 +120,14 @@
             blue: blueC
         };
         hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},10);
     };
 	
-	ext.setColLed = function (lednum, redC, greenC, blueC) {
+	//set a column of neopixels on the neomatrix
+	ext.setColLed = function (lednum, redC, greenC, blueC, callback) {
         var realPort = 1 - 1; //convert from zero-indexed
         var portString = realPort.toString(); //convert to string
         lednum--;
@@ -142,9 +149,14 @@
             blue: blueC
         };
         hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},10);
     };
 	
-	ext.setMatrixConfig = function (tileX, tileY) {
+	//setup neomatrix tiling. Works with up to 4 matrices in any layout, 1x2, 2x1, 2x2, etc.
+	ext.setMatrixConfig = function (tileX, tileY, callback) {
 		
 		console.log("neo matrix setup:" + tileX + " by:" + tileY);
 		
@@ -154,9 +166,14 @@
             tile2: tileY
         };
         hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},100);
     };
 	
-	ext.setFullLed = function (redC, greenC, blueC) {
+	//turn on or off all neopixels on the neomatrix
+	ext.setFullLed = function (redC, greenC, blueC, callback) {
         var realPort = 1 - 1; //convert from zero-indexed
         var portString = realPort.toString(); //convert to string
 		var lednum = 0;
@@ -175,9 +192,14 @@
             blue: blueC
         };
         hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},10);
     };
 	
-	ext.setPixLed = function (lednumx, lednumy, redC, greenC, blueC) {
+	//set a neopixel on the neomatrix
+	ext.setPixLed = function (lednumx, lednumy, redC, greenC, blueC, callback) {
         var realPort = 1 - 1; //convert from zero-indexed
         var portString = realPort.toString(); //convert to string
 		var lednum = 0;
@@ -204,25 +226,99 @@
             blue: blueC
         };
         hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},10);
     };
 	
-	ext.setTriLedHex = function (lednum, hexColor) {
-        var realPort = 1 - 1; //convert from zero-indexed
-        var portString = realPort.toString(); //convert to string
-        var realRed = hexToR(hexColor);
-        var realGreen = hexToR(hexColor);
-        var realBlue = hexToR(hexColor);
+	//print a 7 letter string to the neomatrix. need to use in conjunction with setMatrixCursor to scroll the text.
+	ext.printMatrixString = function (word, callback) {
+   	
+		console.log("word: " + word);
+		
         var report = {
-            message: "O".charCodeAt(0),
-            lednum: lednum,
-            red: realRed,
-            green: realGreen,
-            blue: realBlue
+            message: "p".charCodeAt(0),
+            letter0: word.charCodeAt(0),
+			letter1: word.charCodeAt(1),
+			letter2: word.charCodeAt(2),
+			letter3: word.charCodeAt(3),
+			letter4: word.charCodeAt(4),
+			letter5: word.charCodeAt(5),
+			letter6: word.charCodeAt(6),
+			letter7: word.charCodeAt(7),
+			letter8: word.charCodeAt(8),
+			letter9: word.charCodeAt(9),
+			letter10: word.charCodeAt(10),
+			letter11: word.charCodeAt(11),
+			letter12: word.charCodeAt(12),
+			letter13: word.charCodeAt(13),
+			letter14: word.charCodeAt(14),
+			letter15: word.charCodeAt(15),
         };
         hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},10);
     };
+	
+	//set neomatrix print string text color
+	ext.setMatrixTextColor = function (redC, greenC, blueC, callback) {
+   	
+		console.log("text color: " +  "R:" + redC + " G:" + greenC + " B:" + blueC );
+		redC = fitTo255(redC);
+		greenC = fitTo255(greenC);
+		blueC = fitTo255(blueC);
+		
+        var report = {
+            message: "T".charCodeAt(0),
+			red: redC,
+            green: greenC,
+            blue: blueC
+        };
+        hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},10);
+    };
+	
+	//set neomatrix print string cursor. Use to scroll text across the screen
+	ext.setMatrixCursor = function (cursorX, cursorY, callback) {
 
-    ext.setLed = function () {
+		var signX = 0;
+		var signY = 0;
+		
+		if(cursorX < 0)
+		{
+			signX = 1;
+			cursorX *= -1;
+		}
+		if(cursorY < 0)
+		{
+			signY = 1;
+			cursorY *= -1;
+		}
+
+		console.log("cursor: " + cursorX + "," + cursorY + " signs: " + signX + "," + signY );
+
+        var report = {
+            message: "c".charCodeAt(0),
+            cursorX: cursorX,
+			cursorY: cursorY,
+			signX: signX,
+			signY: signY
+        };
+        hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},10);
+    };
+	
+	//set red led on the circuit playground
+    ext.setLed = function (callback) {
       
 		ledStatus ^= true;
 		
@@ -231,9 +327,14 @@
             intensity: ledStatus
         };
         hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},10);
     };
 	
-	ext.setTone = function (tone) {
+	//sound the buzzer on the circuit playground
+	/*ext.setTone = function (tone) {
         //var realPort = portnum - 1;
         //var portString = realPort.toString();
         //var realIntensity = fitTo255(Math.floor(intensitynum * 2.55));
@@ -247,9 +348,10 @@
             intensity: tone
         };
         hPort.postMessage(report);
-    };
+    };*/
 	
-	ext.setupServo = function (serv, servo_num) {
+	//attaches/detaches servos. use before setting a servo angle. ports 9 & 10 on the circuit playground.
+	ext.setupServo = function (serv, servo_num, callback) {
         //var realPort = portnum - 1; //convert to zero-indexed number
         //var portString = realPort.toString(); //convert to string
         var servo_setup = 1;
@@ -269,9 +371,14 @@
             servo_setup: servo_setup
         };
         hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},100);
     };
 
-    ext.setServo = function (servo_num, ang) {
+	//sets the angle of a servo.
+    ext.setServo = function (servo_num, ang, callback) {
         //var realPort = portnum - 1; //convert to zero-indexed number
         //var portString = realPort.toString(); //convert to string
 		
@@ -291,20 +398,23 @@
             angle: ang
         };
         hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},10);
     };
 
-    //getters for sensor information
-
+    //getters for sensor information. port numbers as follows:
 	/*Capsense x4	0-3
 	Light			4
 	Microphone		5
 	Temperature		6
 	Pushbutton x2	7,8
 	Switch			9
-	Acc x3			10,11,12
+	Acc x,y,z		10,11,12
 	*/
     ext.getTemp = function (deg) {
-        //returns temperature in Celsius degrees
+        //returns board temperature 
 		if(deg == '°F')
 		{
 			return sensorvalue[6];
@@ -347,7 +457,7 @@
     };
 	
 	ext.getAcc = function (axis) {
-        //returns accerolerometer values
+        //returns accelerometer values
 		if(axis == 'x')
 			return sensorvalue[10];
 		else if(axis == 'y')
@@ -357,21 +467,22 @@
     };
 
     ext.getRaw = function (port) {
-        //converts to 0 to 100 scale
-        return sensorvalue[port];//Math.floor(sensorvalue[port - 1] / 2.55);
+        //gets raw sensor value for debugging
+        return sensorvalue[port];
     };
 	
+	//get capsense reading. TODO: adjustable capsense threshold
 	ext.getCap = function (port) {
-        //converts to 0 to 100 scale
-		var report = {
+        
+		/*var report = {
             message: "c".charCodeAt(0),
 			red: 1 
         };
-        hPort.postMessage(report);
+        hPort.postMessage(report);*/
 		 
-        var cap1 = sensorvalue[port];//Math.floor(sensorvalue[port - 1] / 2.55); 
+        var cap1 = sensorvalue[port];
 		console.log("cap " + port + ": " + cap1);
-		if(cap1 > 80)
+		if(cap1 > 80)//capsense threshold. can be adjusted depending on environment.
 		{
 			return 1;
 		}
@@ -381,6 +492,7 @@
 		}
     };
 	
+	//map a 0-255 sensor value to a new range
 	ext.mapVal = function(val, bMin, bMax) {
 		var aMin = 0;
 		var aMax = 255;
@@ -402,11 +514,12 @@
     };
 
     ext.resetAll = function () {
-        //sends reset to Circuit Playground
+        //sends reset to Circuit Playground. Not currently functional
         var report = {message: "X".charCodeAt(0)};
         hPort.postMessage(report);
     };
 
+	//get circuit playground/scratch connection app status
     ext._getStatus = function () {
         var currStatus = hStatus;
         if (currStatus === 2)
@@ -428,15 +541,18 @@
     var descriptor = {
         blocks: [
 			['b', "Touch sensor %n touched?", "getCap", 0],
-			[' ', "Set Neopixel Ring %n to R:%n G:%n B:%n", "setRingLed", 1, 255, 0, 0],
-			[' ', "Set Neopixel Matrix Row %n to R:%n G:%n B:%n", "setRowLed", 1, 255, 0, 0],
-			[' ', "Set Neopixel Matrix Column %n to R:%n G:%n B:%n", "setColLed", 1, 0, 255, 0],
-			[' ', "Set Neopixel Matrix Pixel %n , %n to R:%n G:%n B:%n", "setPixLed", 1, 1, 0, 0, 255],
-			[' ', "Set Full Neopixel Matrix to R:%n G:%n B:%n", "setFullLed", 0, 0, 0],
-			[' ', "Setup Neopixel Matrix Tiling to %n by %n", "setMatrixConfig", 1, 1],
-            [' ', "Toggle LED", "setLed"],
-			[' ', "%m.servo_s Servo %m.push_s", "setupServo", 'Start', 1],
-            [' ', "Set Servo %m.push_s angle to %n", "setServo", 1, 90],
+			['w', "Set Neopixel Ring %n to R:%n G:%n B:%n", "setRingLed", 1, 255, 0, 0],
+			['w', "Set Neopixel Matrix Row %n to R:%n G:%n B:%n", "setRowLed", 1, 255, 0, 0],
+			['w', "Set Neopixel Matrix Column %n to R:%n G:%n B:%n", "setColLed", 1, 0, 255, 0],
+			['w', "Set Neopixel Matrix Pixel %n , %n to R:%n G:%n B:%n", "setPixLed", 1, 1, 0, 0, 255],
+			['w', "Set Full Neopixel Matrix to R:%n G:%n B:%n", "setFullLed", 0, 0, 0],
+			['w', "Print String on Neopixel Matrix: %s", "printMatrixString", "Embedit"],
+			['w', "Set Neopixel Matrix Text Color: R:%n G:%n B:%n", "setMatrixTextColor", 255,0,0],
+			['w', "Set Neopixel Matrix Cursor to %n, %n", "setMatrixCursor", 0,0],
+			['w', "Setup Neopixel Matrix Tiling to %n by %n", "setMatrixConfig", 1, 1],
+            ['w', "Toggle LED", "setLed"],
+			['w', "%m.servo_s Servo %m.push_s", "setupServo", 'Start', 1],
+            ['w', "Set Servo %m.push_s angle to %n", "setServo", 1, 90],
 			['r', "Get Light Brightness", "getLight"],
             ['r', "Get Board Temperature in %m.temp_s", "getTemp", '°F'],
             ['r', "Get Microphone Loudness", "getSound"],

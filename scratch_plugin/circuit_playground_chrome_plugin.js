@@ -37,14 +37,14 @@
 	function cutHex(h) {return (h.charAt(0)=="#") ? h.substring(1,7):h}
 
 	
-    //gets the connection status fo the circuit playground
+    //gets the connection status fo the circuit playground/scratch connection app
     var getCircuitPlaygroundStatus = function () {
         //console.log("status"); 
         chrome.runtime.sendMessage(embeditAppID, {message: "STATUS"}, function (response) {
             if (response === undefined) { //Chrome app not found
                 console.log("Chrome app not found");
                 hStatus = 0;
-                setTimeout(getCircuitPlaygroundStatus, 2000);
+                setTimeout(getCircuitPlaygroundStatus, 100);
             }
             else if (response.status === false) { //Chrome app says not connected
                 if (hStatus !== 1) {
@@ -53,7 +53,7 @@
                     hPort.onMessage.addListener(onMsgCircuitPlayground);
                 }
                 hStatus = 1;
-                setTimeout(getCircuitPlaygroundStatus, 2000);
+                setTimeout(getCircuitPlaygroundStatus, 100);
             }
             else {// successfully connected
                 if (hStatus !==2) {
@@ -64,15 +64,13 @@
                     hPort.onMessage.addListener(onMsgCircuitPlayground);
                 }
                 hStatus = 2;
-                setTimeout(getCircuitPlaygroundStatus, 2000);
+                setTimeout(getCircuitPlaygroundStatus, 100);
             }
         });
     };
 	
-    //all the below functions take in a portnum, it is assumed that the port
-    //has the appropriate device connected to it.
-	
-	ext.setRingLed = function (lednum, color) {
+	//set a neopixel on the circuit playground
+	ext.setRingLed = function (lednum, color, callback) {
         var realPort = 1 - 1; //convert from zero-indexed
         var portString = realPort.toString(); //convert to string
         var realRed = 0;
@@ -123,9 +121,14 @@
             blue: realBlue
         };
         hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},10);
     };
 	
-	ext.setRowLed = function (lednum, color) {
+	//set a row of neopixels on the neomatrix
+	ext.setRowLed = function (lednum, color, callback) {
         var realPort = 1 - 1; //convert from zero-indexed
         var portString = realPort.toString(); //convert to string
 		lednum = lednum - 1;
@@ -176,9 +179,14 @@
             blue: realBlue
         };
         hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},10);
     };
 	
-	ext.setColLed = function (lednum, color) {
+	//set a column of neopixels on the neomatrix
+	ext.setColLed = function (lednum, color, callback) {
         var realPort = 1 - 1; //convert from zero-indexed
         var portString = realPort.toString(); //convert to string
 		lednum = lednum - 1;
@@ -229,9 +237,14 @@
             blue: realBlue
         };
         hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},10);
     };
 	
-	ext.setFullLed = function (color) {
+	//turn on or off all neopixels on the neomatrix
+	ext.setFullLed = function (color, callback) {
         var realPort = 1 - 1; //convert from zero-indexed
         var portString = realPort.toString(); //convert to string
 		var lednum = 1;
@@ -282,9 +295,14 @@
             blue: realBlue
         };
         hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},10);
     };
 	
-	ext.setPixLed = function (lednumx, lednumy, color) {
+	//set a neopixel on the neomatrix
+	ext.setPixLed = function (lednumx, lednumy, color, callback) {
         var realPort = 1 - 1; //convert from zero-indexed
         var portString = realPort.toString(); //convert to string
         var realRed = 0;
@@ -337,25 +355,14 @@
             blue: realBlue
         };
         hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},10);
     };
 	
-	ext.setTriLedHex = function (lednum, hexColor) {
-        var realPort = 1 - 1; //convert from zero-indexed
-        var portString = realPort.toString(); //convert to string
-        var realRed = hexToR(hexColor);
-        var realGreen = hexToR(hexColor);
-        var realBlue = hexToR(hexColor);
-        var report = {
-            message: "O".charCodeAt(0),
-            lednum: lednum,
-            red: realRed,
-            green: realGreen,
-            blue: realBlue
-        };
-        hPort.postMessage(report);
-    };
-
-    ext.setLed = function (b_switch) {
+	//set red led on the circuit playground
+    ext.setLed = function (b_switch, callback) {
         //var realPort = portnum - 1;
         //var portString = realPort.toString();
         //var realIntensity = fitTo255(Math.floor(intensitynum * 2.55));
@@ -373,9 +380,13 @@
             intensity: led_set
         };
         hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},10);
     };
 	
-	ext.setTone = function (tone) {
+	/*ext.setTone = function (tone) {
         //var realPort = portnum - 1;
         //var portString = realPort.toString();
         //var realIntensity = fitTo255(Math.floor(intensitynum * 2.55));
@@ -389,9 +400,10 @@
             intensity: tone
         };
         hPort.postMessage(report);
-    };
+    };*/
 	
-	ext.setupServo = function (serv, servo_num) {
+	//attaches/detaches servos. use before setting a servo angle. ports 9 & 10 on the circuit playground.
+	ext.setupServo = function (serv, servo_num, callback) {
         //var realPort = portnum - 1; //convert to zero-indexed number
         //var portString = realPort.toString(); //convert to string
         var servo_setup = 1;
@@ -411,9 +423,14 @@
             servo_setup: servo_setup
         };
         hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},100);
     };
 
-    ext.setServo = function (servo_num, ang) {
+	//sets the angle of a servo.
+    ext.setServo = function (servo_num, ang, callback) {
         //var realPort = portnum - 1; //convert to zero-indexed number
         //var portString = realPort.toString(); //convert to string
 		
@@ -433,9 +450,13 @@
             angle: ang
         };
         hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},10);
     };
 
-    //getters for sensor information
+    //getters for sensor information. port numbers as follows:
 
 	/*Capsense x4	0-3
 	Light			4
@@ -489,7 +510,7 @@
     };
 	
 	ext.getAcc = function (axis) {
-        //returns accerolerometer values
+        //returns accelerometer values
 		if(axis == 'x')
 			return sensorvalue[10];
 		else if(axis == 'y')
@@ -499,15 +520,16 @@
     };
 
     ext.getRaw = function (port) {
-        //converts to 0 to 100 scale
-        return sensorvalue[port];//Math.floor(sensorvalue[port - 1] / 2.55);
+        //gets raw sensor value for debugging
+        return sensorvalue[port];
     };
 	
+	//get capsense reading. TODO: adjustable capsense threshold
 	ext.getCap = function (port) {
-        //converts to 0 to 100 scale
-        var cap1 = sensorvalue[port];//Math.floor(sensorvalue[port - 1] / 2.55); 
+        
+        var cap1 = sensorvalue[port];
 		console.log("cap " + port + ": " + cap1);
-		if(cap1 > 80)
+		if(cap1 > 80)//capsense threshold. can be adjusted depending on environment.
 		{
 			return 1;
 		}
@@ -517,6 +539,7 @@
 		}
     };
 	
+	//map a 0-255 sensor value to a new range
 	ext.mapVal = function(val, bMin, bMax) {
 		var aMin = 0;
 		var aMax = 255;
@@ -538,11 +561,12 @@
     };
 
     ext.resetAll = function () {
-        //sends reset to Circuit Playground
+        //sends reset to Circuit Playground. Not currently functional
         var report = {message: "X".charCodeAt(0)};
         hPort.postMessage(report);
     };
 
+	//get circuit playground/scratch connection app status
     ext._getStatus = function () {
         var currStatus = hStatus;
         if (currStatus === 2)
@@ -564,22 +588,21 @@
     var descriptor = {
         blocks: [
 			['b', "Touch sensor %m.cap_s touched?", "getCap", 0],
-			[' ', "Set Neopixel Ring %m.ten to %m.colors", "setRingLed", '1', 'Red'],
-			[' ', "Set Neopixel Matrix Row %m.row_s to %m.colors", "setRowLed", 1, 'Red'],
-			[' ', "Set Neopixel Matrix Column %m.col_s to %m.colors", "setColLed", 1, 'Green'],
-			[' ', "Set Neopixel Matrix Pixel %m.row_s %m.col_s to %m.colors", "setPixLed", 1, 1, 'Blue'],
-			[' ', "Set Full Neopixel Matrix to %m.colors", "setFullLed", 'Off'],
-            [' ', "Turn LED %m.binary_s", "setLed", 'On'],
-			[' ', "%m.servo_s Servo %m.push_s", "setupServo", 'Start', 1],
-            [' ', "Set Servo %m.push_s angle to %n", "setServo", 1, 90],
+			['w', "Set Neopixel Ring %m.ten to %m.colors", "setRingLed", '1', 'Red'],
+			['w', "Set Neopixel Matrix Row %m.row_s to %m.colors", "setRowLed", 1, 'Red'],
+			['w', "Set Neopixel Matrix Column %m.col_s to %m.colors", "setColLed", 1, 'Green'],
+			['w', "Set Neopixel Matrix Pixel %m.row_s %m.col_s to %m.colors", "setPixLed", 1, 1, 'Blue'],
+			['w', "Set Full Neopixel Matrix to %m.colors", "setFullLed", 'Off'],
+            ['w', "Turn LED %m.binary_s", "setLed", 'On'],
+			['w', "%m.servo_s Servo %m.push_s", "setupServo", 'Start', 1],
+            ['w', "Set Servo %m.push_s angle to %n", "setServo", 1, 90],
 			['r', "Get Light Brightness", "getLight"],
             ['r', "Get Board Temperature in %m.temp_s", "getTemp", '°F'],
             ['r', "Get Microphone Loudness", "getSound"],
 			['r', "Get Accelerometer %m.acc_s axis", "getAcc", 'x'],
 			['b', "Pushbutton %m.push_s pushed?", "getPush", 1],
 			['b', "Switch on?", "getSwitch"],
-			['r', "Map value: %n to range %n - %n", "mapVal", 127, -180,180],
-            ['r', "Debug value on port %m.debug_s", "getRaw", 1]
+			['r', "Map value: %n to range %n - %n", "mapVal", 127, -180,180]
         ],
         menus: {
             port: ['1', '2', '3', '4'],
