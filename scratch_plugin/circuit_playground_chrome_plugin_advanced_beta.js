@@ -474,13 +474,17 @@
 	//get capsense reading. TODO: adjustable capsense threshold
 	ext.getCap = function (port) {
         
-		var report = {
-            message: "c".charCodeAt(0),
-			red: 1 
-        };
-        hPort.postMessage(report);
+		var cap1;
+		if(port >= 0 && port <= 3)
+		{
+			cap1 = sensorvalue[port];
+		}
+		else
+		{
+			cap1 = 0;
+		}
 		 
-        var cap1 = sensorvalue[port];
+        
 		console.log("cap " + port + ": " + cap1);
 		if(cap1 > 80)//capsense threshold. can be adjusted depending on environment.
 		{
@@ -491,6 +495,34 @@
 			return 0;
 		}
     };
+	
+	//get an analog reading on pins 9,10, or 12
+	ext.getAnalog = function (port, a_type) {
+		
+		var analog_value;
+		//check value on the port
+		switch(port) {
+			case 9:
+				analog_value = sensorvalue[13];
+				break;
+			case 10:
+				analog_value = sensorvalue[14];
+				break;
+			case 12:
+				analog_value = sensorvalue[15];
+				break;
+			default:
+				analog_value = -1;
+		}
+		
+		if(a_type == 'volts')
+		{
+			analog_value *= 0.01294;//convert to 0 to 3.3v value
+			analog_value = +analog_value.toFixed(1);
+		}
+		console.log("analog pin " + port + " val: " + analog_value);
+		return analog_value;	
+	};
 	
 	//map a 0-255 sensor value to a new range
 	ext.mapVal = function(val, bMin, bMax) {
@@ -557,6 +589,7 @@
             ['r', "Get Board Temperature in %m.temp_s", "getTemp", '°F'],
             ['r', "Get Microphone Loudness", "getSound"],
 			['r', "Get Accelerometer %m.acc_s axis", "getAcc", 'x'],
+			['r', "Read Analog pin %m.analog_s in %m.analog_m", "getAnalog", 12, 'counts'],
 			['b', "Pushbutton %m.push_s pushed?", "getPush", 1],
 			['b', "Switch on?", "getSwitch"],
 			['r', "Map value: %n to range %n - %n", "mapVal", 127, -180,180],
@@ -565,6 +598,8 @@
         menus: {
             port: ['1', '2', '3', '4'],
 			cap_s: [0,1,2,3],
+			analog_s: [9,10,12],
+			analog_m: ['counts', 'volts'],
 			acc_s: ['x','y','z'],
 			push_s: [1,2],
 			debug_s: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,18,19,20,21,22,29,30,31,32],

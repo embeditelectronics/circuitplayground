@@ -1,3 +1,8 @@
+/*
+	Circuit Playground USB HID ScratchX interface firmware V1.6
+	Copyright Embedit Electronics 2017
+	Author - Robert Barron
+*/
 /**
  * You should have a LUFAConfig.h for this to work.
  */
@@ -47,8 +52,8 @@ Adafruit_NeoMatrix* matrix = new Adafruit_NeoMatrix(5, 8, PIN,
 //HIDReportEcho;
 //extern struct OutGoingReport;
 
-Servo myservo1;  // create servo object to control servo 1
-Servo myservo2;  // create servo object to control servo 2
+Servo servo9;  // create servo object to control servo 1 on pin #9
+Servo servo10;  // create servo object to control servo 2 on pin #10
 
 void setup()
 {
@@ -57,6 +62,9 @@ void setup()
 	GlobalInterruptEnable(); // enable global interrupts
 	
 	CircuitPlayground.begin();
+	pinMode(9, INPUT); //ready for analog in on pin 9
+	pinMode(10, INPUT); //ready for analog in on pin 10
+	pinMode(12, INPUT); //ready for analog in on pin 12
 	matrix->begin();
 	matrix->setTextWrap(false);
 	matrix->setCursor(0,0);
@@ -74,22 +82,24 @@ void setupServo(uint8_t servo_num, uint8_t servo_setup)
 	{
 		if(servo_setup == 1)
 		{
-			myservo1.attach(9);
+			servo9.attach(9);
 		}
 		else
 		{
-			myservo1.detach();
+			servo9.detach();
+			pinMode(9, INPUT);//make sure pin is back to analog read ready state
 		}
 	}
 	else
 	{
 		if(servo_setup == 1)
 		{
-			myservo2.attach(10);
+			servo10.attach(10);
 		}
 		else
 		{
-			myservo2.detach();
+			servo10.detach();
+			pinMode(10, INPUT);//make sure pin is back to analog read ready state
 		}
 	}
 	
@@ -100,11 +110,11 @@ void setServo(uint8_t servo_num, uint8_t servo_ang)
 {	
 	if(servo_num == 1)
 	{
-		myservo1.write(servo_ang);
+		servo9.write(servo_ang);
 	}
 	else
 	{
-		myservo2.write(servo_ang);
+		servo10.write(servo_ang);
 	}
 }
 
@@ -255,7 +265,10 @@ void loop()
 						Pushbutton x2	7,8
 						Switch			9
 						Acc x3			10,11,12
-						Note: must respond to this polling request within ~20 milliseconds
+						Analog #9		13
+						Analog #10		14
+						Analog A11 #12  15
+						Note: must respond to this polling request within ~20 milliseconds.
 						*/
 						//time = millis();//time before we sample sensors. uncomment to measure sampling time.
 						outReportData[0] = CircuitPlayground.readCap(0);
@@ -271,15 +284,18 @@ void loop()
 						outReportData[10] = map(constrain(CircuitPlayground.motionX(),-9.8,9.8), -9.8,9.8, 0, 255);
 						outReportData[11] = map(constrain(CircuitPlayground.motionY(),-9.8,9.8), -9.8,9.8, 0, 255);
 						outReportData[12] = map(constrain(CircuitPlayground.motionZ(),-20.0,20.0), -20.0, 20.0, 0, 255);
-						//You can add outgoing data from additional sensors here, using outReportData[13-17]
+						if(!servo9.attached()) outReportData[13] = map(analogRead(9), 0, 1023, 0, 255);
+						if(!servo10.attached()) outReportData[14] = map(analogRead(10), 0, 1023, 0, 255); 
+						outReportData[15] = map(analogRead(A11), 0, 1023, 0, 255); 						
+						//You can add outgoing data from additional sensors here, using outReportData[16-17]
 						
-						//outReportData[13] = millis() - time;//time to sample sensors. uncomment to measure sampling time.
-						outReportData[18] = 0x05; //firmware version
+						//outReportData[16] = millis() - time;//time to sample sensors. uncomment to measure sampling time.
+						outReportData[18] = 0x06; //firmware version
 						break;
 					}
 					//request for board type
 					if(echoReportData[1] == '4') {
-						outReportData[18] = 0x05; //firmware version
+						outReportData[18] = 0x06; //firmware version
 					}
 					
 					break;
