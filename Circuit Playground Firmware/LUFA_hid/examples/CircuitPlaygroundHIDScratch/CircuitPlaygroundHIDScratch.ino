@@ -170,6 +170,15 @@ void matrixSetup(uint8_t tileX, uint8_t tileY)
 	tileY_c = tileY;
 }
 
+//set all neopixels on the circuit playground
+void setNeoRing(uint8_t first, uint8_t last, uint8_t r, uint8_t g, uint8_t b)
+{
+	for(int i = first; i <= last; i++)
+	{
+		CircuitPlayground.setPixelColor(i,r,g,b);
+	}
+}
+
 //draw rows or columns on the neopixel matrix
 void drawNeoStrip(uint8_t strip, uint8_t pixel, uint16_t color)
 {
@@ -200,6 +209,10 @@ void loop()
 				// If O, set a circuitplayground RGB LED using bytes 1-4 of the HID report
 				case 'O':
 					CircuitPlayground.setPixelColor(echoReportData[1],echoReportData[2],echoReportData[3],echoReportData[4]);
+					break;
+				// If o, set all circuitplayground RGB LEDs using bytes 1-5 of the HID report
+				case 'o':
+					setNeoRing(echoReportData[1],echoReportData[2],echoReportData[3],echoReportData[4],echoReportData[5]);
 					break;
 				// If 'P', draw a pixel on the neopixel matrix
 				case 'P':

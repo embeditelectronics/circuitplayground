@@ -97,6 +97,32 @@
 		},10);
     };
 	
+	//set all neopixels on the circuit playground
+	ext.setRingLedAll = function (redC, greenC, blueC, callback) {
+        
+		
+		redC = fitTo255(redC); //fit our input to 0-255 range
+		greenC = fitTo255(greenC);
+		blueC = fitTo255(blueC);
+		
+		console.log("neo ring all: R:" + redC + " G:" + greenC + " B:" + blueC);//output result to console
+		
+		//our hid report to send to the circuit playground. Letter "o" tells it this is the neopixel ring command
+        var report = {
+            message: "o".charCodeAt(0),
+            lednum_f: 0,
+			lednum_l: 9,
+            red: redC,
+            green: greenC,
+            blue: blueC
+        };
+        hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},10);
+    };
+	
 	//set a row of neopixels on the neomatrix
 	ext.setRowLed = function (lednum, redC, greenC, blueC, callback) {
         var realPort = 1 - 1; //convert from zero-indexed
@@ -474,13 +500,17 @@
 	//get capsense reading. TODO: adjustable capsense threshold
 	ext.getCap = function (port) {
         
-		/*var report = {
-            message: "c".charCodeAt(0),
-			red: 1 
-        };
-        hPort.postMessage(report);*/
+		var cap1;
+		if(port >= 0 && port <= 3)
+		{
+			cap1 = sensorvalue[port];
+		}
+		else
+		{
+			cap1 = 0;
+		}
 		 
-        var cap1 = sensorvalue[port];
+        
 		console.log("cap " + port + ": " + cap1);
 		if(cap1 > 80)//capsense threshold. can be adjusted depending on environment.
 		{
@@ -491,6 +521,34 @@
 			return 0;
 		}
     };
+	
+	//get an analog reading on pins 9,10, or 12
+	ext.getAnalog = function (port, a_type) {
+		
+		var analog_value;
+		//check value on the port
+		switch (port) {
+			case 9:
+				analog_value = sensorvalue[13];
+				break;
+			case 10:
+				analog_value = sensorvalue[14];
+				break;
+			case 12:
+				analog_value = sensorvalue[15];
+				break;
+			default:
+				analog_value = 0;
+		}
+		
+		if(a_type == 'volts')
+		{
+			analog_value *= 0.01294;//convert to 0 to 3.3v value
+			analog_value = +analog_value.toFixed(2);
+		}
+		console.log("analog pin " + port + " val: " + analog_value);
+		return analog_value;	
+	};
 	
 	//map a 0-255 sensor value to a new range
 	ext.mapVal = function(val, bMin, bMax) {
@@ -542,6 +600,7 @@
         blocks: [
 			['b', "Touch sensor %n touched?", "getCap", 0],
 			['w', "Set Neopixel Ring %n to R:%n G:%n B:%n", "setRingLed", 1, 255, 0, 0],
+			['w', "Set Full Neopixel Ring to R:%n G:%n B:%n", "setRingLedAll", 0, 0, 0],
 			['w', "Set Neopixel Matrix Row %n to R:%n G:%n B:%n", "setRowLed", 1, 255, 0, 0],
 			['w', "Set Neopixel Matrix Column %n to R:%n G:%n B:%n", "setColLed", 1, 0, 255, 0],
 			['w', "Set Neopixel Matrix Pixel %n , %n to R:%n G:%n B:%n", "setPixLed", 1, 1, 0, 0, 255],
@@ -557,6 +616,7 @@
             ['r', "Get Board Temperature in %m.temp_s", "getTemp", '°F'],
             ['r', "Get Microphone Loudness", "getSound"],
 			['r', "Get Accelerometer %m.acc_s axis", "getAcc", 'x'],
+			['r', "Read Analog pin %n in %m.analog_m", "getAnalog", 12, 'counts'],
 			['b', "Pushbutton %m.push_s pushed?", "getPush", 1],
 			['b', "Switch on?", "getSwitch"],
 			['r', "Map value: %n to range %n - %n", "mapVal", 127, -180,180],
@@ -565,6 +625,8 @@
         menus: {
             port: ['1', '2', '3', '4'],
 			cap_s: [0,1,2,3],
+			analog_s: [9,10,12],
+			analog_m: ['counts', 'volts'],
 			acc_s: ['x','y','z'],
 			push_s: [1,2],
 			debug_s: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,18,19,20,21,22,29,30,31,32],

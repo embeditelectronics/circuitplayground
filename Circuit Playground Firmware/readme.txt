@@ -13,3 +13,5 @@ Changelog
 1.4 - Added ability to tile up to four neopixel matrices in any configuration.
 
 1.5 - Added ability to print scrolling text.
+
+1.6 - Added analog input on pins 9,10, and 12. Also added function to control all neopixel ring LEDs at once.

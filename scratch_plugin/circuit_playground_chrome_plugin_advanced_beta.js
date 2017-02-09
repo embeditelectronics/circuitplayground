@@ -97,6 +97,32 @@
 		},10);
     };
 	
+	//set all neopixels on the circuit playground
+	ext.setRingLedAll = function (redC, greenC, blueC, callback) {
+        
+		
+		redC = fitTo255(redC); //fit our input to 0-255 range
+		greenC = fitTo255(greenC);
+		blueC = fitTo255(blueC);
+		
+		console.log("neo ring all: R:" + redC + " G:" + greenC + " B:" + blueC);//output result to console
+		
+		//our hid report to send to the circuit playground. Letter "o" tells it this is the neopixel ring command
+        var report = {
+            message: "o".charCodeAt(0),
+            lednum_f: 0,
+			lednum_l: 9,
+            red: redC,
+            green: greenC,
+            blue: blueC
+        };
+        hPort.postMessage(report);
+		
+		window.setTimeout(function() {
+			callback();
+		},10);
+    };
+	
 	//set a row of neopixels on the neomatrix
 	ext.setRowLed = function (lednum, redC, greenC, blueC, callback) {
         var realPort = 1 - 1; //convert from zero-indexed
@@ -501,7 +527,7 @@
 		
 		var analog_value;
 		//check value on the port
-		switch(port) {
+		switch (port) {
 			case 9:
 				analog_value = sensorvalue[13];
 				break;
@@ -512,13 +538,13 @@
 				analog_value = sensorvalue[15];
 				break;
 			default:
-				analog_value = -1;
+				analog_value = 0;
 		}
 		
 		if(a_type == 'volts')
 		{
 			analog_value *= 0.01294;//convert to 0 to 3.3v value
-			analog_value = +analog_value.toFixed(1);
+			analog_value = +analog_value.toFixed(2);
 		}
 		console.log("analog pin " + port + " val: " + analog_value);
 		return analog_value;	
@@ -574,6 +600,7 @@
         blocks: [
 			['b', "Touch sensor %n touched?", "getCap", 0],
 			['w', "Set Neopixel Ring %n to R:%n G:%n B:%n", "setRingLed", 1, 255, 0, 0],
+			['w', "Set Full Neopixel Ring to R:%n G:%n B:%n", "setRingLedAll", 0, 0, 0],
 			['w', "Set Neopixel Matrix Row %n to R:%n G:%n B:%n", "setRowLed", 1, 255, 0, 0],
 			['w', "Set Neopixel Matrix Column %n to R:%n G:%n B:%n", "setColLed", 1, 0, 255, 0],
 			['w', "Set Neopixel Matrix Pixel %n , %n to R:%n G:%n B:%n", "setPixLed", 1, 1, 0, 0, 255],
@@ -589,7 +616,7 @@
             ['r', "Get Board Temperature in %m.temp_s", "getTemp", '°F'],
             ['r', "Get Microphone Loudness", "getSound"],
 			['r', "Get Accelerometer %m.acc_s axis", "getAcc", 'x'],
-			['r', "Read Analog pin %m.analog_s in %m.analog_m", "getAnalog", 12, 'counts'],
+			['r', "Read Analog pin %n in %m.analog_m", "getAnalog", 12, 'counts'],
 			['b', "Pushbutton %m.push_s pushed?", "getPush", 1],
 			['b', "Switch on?", "getSwitch"],
 			['r', "Map value: %n to range %n - %n", "mapVal", 127, -180,180],
